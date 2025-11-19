@@ -1,0 +1,15 @@
+artifact_uri: file:C:\Aldy-Kuliah\Semester 7\mlOps\project\Model_Eksperimen_Aldy-Naufal\mlruns/466062105829455107/64636fd9c5414f70b4fd57d00f78fb92/artifacts
+end_time: 1763526003634
+entry_point_name: ''
+experiment_id: '466062105829455107'
+lifecycle_stage: active
+run_id: 64636fd9c5414f70b4fd57d00f78fb92
+run_name: local_tuning_run_13
+run_uuid: 64636fd9c5414f70b4fd57d00f78fb92
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763525999623
+status: 3
+tags: []
+user_id: FX506

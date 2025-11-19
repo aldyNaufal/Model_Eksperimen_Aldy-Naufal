@@ -2,9 +2,10 @@
 modelling_tuning.py
 ===================
 
-Hyperparameter tuning TF-IDF + LinearSVC dengan MLflow (DagsHub).
-- Manual logging (bukan autolog)
-- Extra metrics beyond autolog (F1 per-genre)
+Hyperparameter tuning TF-IDF + LinearSVC dengan MLflow.
+- Run 1: tracking lokal (file:./mlruns) -> untuk Basic/Skilled (UI 127.0.0.1)
+- Run 2: tracking ke DagsHub (MLFLOW_TRACKING_URI) -> untuk Advanced
+- Manual logging + extra metrics (F1 per-genre)
 """
 
 import os
@@ -24,12 +25,10 @@ import joblib
 import mlflow
 import mlflow.sklearn
 
-
 # ============================================================
 # 1. Path & loader
 # ============================================================
 
- 
 PROJECT_ROOT = Path(__file__).resolve().parent
 PREP_DATA_PATH = PROJECT_ROOT / "data_preprocessing" / "videos_preprocessed.csv"
 
@@ -51,7 +50,7 @@ def load_preprocessed_data() -> tuple[pd.Series, pd.Series]:
         raise ValueError("Kolom 'primary_genre' tidak ditemukan di videos_preprocessed.csv")
 
     df = df.dropna(subset=["primary_genre"]).copy()
-    print("[INFO] Jumlah data setelah drop NaN genre:", len(df))
+    print("[INFO] Jumlah data setelah buang NaN genre:", len(df))
 
     if "text" not in df.columns:
         print("[INFO] Kolom 'text' tidak ada. Membuat dari title+description+tags...")
@@ -107,10 +106,31 @@ def split_train_val_test(
 
 
 # ============================================================
-# 2. Setup MLflow ke DagsHub
+# 2. Setup MLflow (LOCAL & REMOTE)
 # ============================================================
 
-def setup_mlflow(experiment_name: str = "genre_game_tuning"):
+def setup_mlflow_local(experiment_name: str):
+    """
+    Mode lokal: simpan ke ./mlruns
+    Untuk Basic/Skilled, jalankan:
+      mlflow ui --backend-store-uri file:./mlruns --host 127.0.0.1 --port 5000
+    """
+    tracking_uri = "file:" + str(PROJECT_ROOT / "mlruns")
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(experiment_name)
+    print("[MLFLOW] MODE LOCAL")
+    print("[MLFLOW] Tracking URI :", tracking_uri)
+    print("[MLFLOW] Experiment   :", experiment_name)
+
+
+def setup_mlflow_remote(experiment_name: str):
+    """
+    Mode remote: simpan ke DagsHub.
+    Butuh .env berisi:
+      MLFLOW_TRACKING_URI
+      MLFLOW_TRACKING_USERNAME
+      MLFLOW_TRACKING_PASSWORD
+    """
     env_path = PROJECT_ROOT / ".env"
     if env_path.exists():
         load_dotenv(env_path, override=True)
@@ -131,6 +151,7 @@ def setup_mlflow(experiment_name: str = "genre_game_tuning"):
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(experiment_name)
 
+    print("[MLFLOW] MODE REMOTE (DagsHub)")
     print("[MLFLOW] Tracking URI :", tracking_uri)
     print("[MLFLOW] Experiment   :", experiment_name)
 
@@ -198,11 +219,17 @@ def train_eval_single_config(
         mlflow.log_metric("val_f1_macro", f1_macro_val)
         mlflow.log_metric("val_f1_weighted", f1_weighted_val)
 
-        # extra metrics (beyond autolog): F1 per-genre
+        # extra metrics (beyond autolog): F1 per-genre (ADVANCED)
         report = classification_report(y_val, y_val_pred, output_dict=True)
         for label, metrics in report.items():
             if label in y_val.unique():
                 mlflow.log_metric(f"val_f1_{label}", metrics["f1-score"])
+
+        # (opsional) simpan classification report sebagai artefak tambahan
+        report_text = classification_report(y_val, y_val_pred)
+        with open("val_classification_report.txt", "w", encoding="utf-8") as f:
+            f.write(report_text)
+        mlflow.log_artifact("val_classification_report.txt")
 
         # simpan model sebagai artifact
         mlflow.sklearn.log_model(pipeline, artifact_path="model")
@@ -222,6 +249,7 @@ def tuning_loop(
     X_val,
     y_val,
     param_grid: Dict[str, List[Any]],
+    run_prefix: str,
 ):
     """
     Loop manual tuning.
@@ -248,7 +276,7 @@ def tuning_loop(
         print(f"[TUNING] Run {i}/{len(param_list)}")
         print("[TUNING] Params:", params)
 
-        run_name = f"tuning_run_{i}"
+        run_name = f"{run_prefix}_tuning_run_{i}"
         result, pipeline, run_id = train_eval_single_config(
             params=params,
             X_train=X_train,
@@ -276,22 +304,36 @@ def tuning_loop(
     return best_result, best_pipeline, best_run_id, all_results
 
 
-# ============================================================
-# 4. Main
-# ============================================================
-
-def main():
-    setup_mlflow(experiment_name="genre_game_tuning")
+def run_one_mode(mode: str):
+    """
+    mode = 'local'  -> ./mlruns (localhost)
+    mode = 'remote' -> DagsHub
+    """
+    print("\n" + "#" * 70)
+    print(f"[MODE] Running tuning in mode: {mode}")
+    print("#" * 70)
 
     X, y = load_preprocessed_data()
     X_train, X_val, X_test, y_train, y_val, y_test = split_train_val_test(X, y)
 
-    # Grid yang sama seperti di notebook
     param_grid = {
         "max_features": [20000, 30000, 50000],
         "ngram_range": [(1, 1), (1, 2)],
         "C": [0.5, 1.0, 2.0],
     }
+
+    if mode == "local":
+        setup_mlflow_local(experiment_name="genre_game_tuning_local")
+        run_prefix = "local"
+        model_suffix = "local"
+
+    elif mode == "remote":
+        setup_mlflow_remote(experiment_name="genre_game_tuning_remote")
+        run_prefix = "remote"
+        model_suffix = "remote"
+
+    else:
+        raise ValueError("mode harus 'local' atau 'remote'")
 
     best_result, best_pipeline, best_run_id, all_results = tuning_loop(
         X_train=X_train,
@@ -299,24 +341,25 @@ def main():
         X_val=X_val,
         y_val=y_val,
         param_grid=param_grid,
+        run_prefix=run_prefix,
     )
 
     # Evaluasi best model di test set dalam run terpisah
     print("\n" + "=" * 60)
-    print("[TEST] Evaluasi best model di test set...")
+    print(f"[TEST-{mode}] Evaluasi best model di test set...")
 
     y_test_pred = best_pipeline.predict(X_test)
     test_acc = accuracy_score(y_test, y_test_pred)
     test_f1_macro = f1_score(y_test, y_test_pred, average="macro")
     test_f1_weighted = f1_score(y_test, y_test_pred, average="weighted")
 
-    print(f"[TEST] accuracy     : {test_acc:.4f}")
-    print(f"[TEST] f1_macro     : {test_f1_macro:.4f}")
-    print(f"[TEST] f1_weighted  : {test_f1_weighted:.4f}")
+    print(f"[TEST-{mode}] accuracy     : {test_acc:.4f}")
+    print(f"[TEST-{mode}] f1_macro     : {test_f1_macro:.4f}")
+    print(f"[TEST-{mode}] f1_weighted  : {test_f1_weighted:.4f}")
     print("\n[TEST] Classification report:\n")
     print(classification_report(y_test, y_test_pred))
 
-    with mlflow.start_run(run_name="best_model_test_evaluation") as run:
+    with mlflow.start_run(run_name=f"{run_prefix}_best_model_test_evaluation") as run:
         mlflow.log_param("source_best_tuning_run_id", best_run_id)
         mlflow.log_param("best_max_features", best_result["params"]["max_features"])
         mlflow.log_param("best_ngram_range", str(best_result["params"]["ngram_range"]))
@@ -331,9 +374,21 @@ def main():
         print("[MLFLOW] Test evaluation run_id:", run.info.run_id)
 
     # Simpan best model ke file lokal
-    model_path = MODELS_DIR / "tfidf_svc_genre_game_best_tuned.pkl"
+    model_path = MODELS_DIR / f"tfidf_svc_genre_game_best_tuned_{model_suffix}.pkl"
     joblib.dump(best_pipeline, model_path)
-    print("[SAVE] Best tuned model disimpan ke:", model_path)
+    print(f"[SAVE] Best tuned model ({mode}) disimpan ke:", model_path)
+
+
+# ============================================================
+# 4. Main
+# ============================================================
+
+def main():
+    # 1) Run lokal (mlruns -> 127.0.0.1:5000) untuk Basic/Skilled
+    run_one_mode("local")
+
+    # 2) Run remote (DagsHub) untuk Advanced
+    run_one_mode("remote")
 
 
 if __name__ == "__main__":

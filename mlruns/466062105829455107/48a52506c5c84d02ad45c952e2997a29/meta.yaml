@@ -1,0 +1,15 @@
+artifact_uri: file:C:\Aldy-Kuliah\Semester 7\mlOps\project\Model_Eksperimen_Aldy-Naufal\mlruns/466062105829455107/48a52506c5c84d02ad45c952e2997a29/artifacts
+end_time: 1763524761225
+entry_point_name: ''
+experiment_id: '466062105829455107'
+lifecycle_stage: active
+run_id: 48a52506c5c84d02ad45c952e2997a29
+run_name: local_best_model_test_evaluation
+run_uuid: 48a52506c5c84d02ad45c952e2997a29
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763524755165
+status: 3
+tags: []
+user_id: FX506
