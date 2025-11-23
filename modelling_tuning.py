@@ -374,7 +374,7 @@ def run_one_mode(mode: str):
         print("[MLFLOW] Test evaluation run_id:", run.info.run_id)
 
     # Simpan best model ke file lokal
-    model_path = MODELS_DIR / f"tfidf_svc_genre_game_best_tuned_{model_suffix}.pkl"
+    model_path = MODELS_DIR / f"tfidf_svc_genre_game_best_tuned.pkl"
     joblib.dump(best_pipeline, model_path)
     print(f"[SAVE] Best tuned model ({mode}) disimpan ke:", model_path)
 

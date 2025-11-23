@@ -1,0 +1,10 @@
+artifact_location: file:C:\Aldy-Kuliah\Semester 7\mlOps\project\Model_Eksperimen_Aldy-Naufal\mlruns/466062105829455107/models/m-ac872c42f0cf45e4a798e04dece6c7be/artifacts
+creation_timestamp: 1763821705951
+experiment_id: '466062105829455107'
+last_updated_timestamp: 1763821711114
+model_id: m-ac872c42f0cf45e4a798e04dece6c7be
+model_type: null
+name: model
+source_run_id: cdc9c489aff2468692b03c1e703e1f19
+status: 2
+status_message: null

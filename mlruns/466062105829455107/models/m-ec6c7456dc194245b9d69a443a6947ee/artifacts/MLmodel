@@ -1,0 +1,22 @@
+artifact_path: file:C:\Aldy-Kuliah\Semester 7\mlOps\project\Model_Eksperimen_Aldy-Naufal\mlruns/466062105829455107/models/m-ec6c7456dc194245b9d69a443a6947ee/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.11.5
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.6.1
+mlflow_version: 3.5.1
+model_id: m-ec6c7456dc194245b9d69a443a6947ee
+model_size_bytes: 510832
+model_uuid: m-ec6c7456dc194245b9d69a443a6947ee
+prompts: null
+run_id: 8c9de9bf5df048608475e55478600372
+utc_time_created: '2025-11-22 14:28:13.976722'
