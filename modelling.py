@@ -31,7 +31,7 @@ import mlflow.sklearn
 # ============================================================
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-PREP_DATA_PATH = PROJECT_ROOT / "data_preprocessing" / "videos_preprocessed.csv"
+PREP_DATA_PATH = PROJECT_ROOT / "data_preprocessing" / "videos_with_genre.csv"
 
 MODELS_DIR = PROJECT_ROOT / "models"
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
