@@ -1,13 +1,17 @@
                precision    recall  f1-score   support
 
-Battle Royale       0.75      0.67      0.71         9
-       Horror       0.43      0.50      0.46         6
-         MOBA       0.80      0.67      0.73         6
-          RPG       0.67      0.40      0.50         5
-      Sandbox       0.84      0.94      0.89        17
-   Simulation       0.83      0.97      0.89        30
-       Sports       1.00      0.50      0.67         8
+Battle Royale       0.66      0.74      0.70        31
+ Casual/Party       1.00      1.00      1.00         3
+          FPS       0.89      0.89      0.89         9
+       Horror       0.33      0.50      0.40         4
+         MOBA       0.89      0.62      0.73        13
+          RPG       1.00      0.80      0.89         5
+       Racing       0.62      1.00      0.77         5
+      Sandbox       0.78      0.78      0.78         9
+   Simulation       0.89      0.73      0.80        11
+       Sports       0.89      0.80      0.84        10
+     Strategy       1.00      0.50      0.67         2
 
-     accuracy                           0.79        81
-    macro avg       0.76      0.66      0.69        81
- weighted avg       0.80      0.79      0.78        81
+     accuracy                           0.75       102
+    macro avg       0.81      0.76      0.77       102
+ weighted avg       0.78      0.75      0.76       102

@@ -1,4 +1,12 @@
 {
-    "test_accuracy": 0.8431372549019608,
-    "test_f1_macro": 0.8329347513980218
+    "best_params": {
+        "max_features": 10000,
+        "ngram_range": [
+            1,
+            2
+        ],
+        "C": 1.0
+    },
+    "best_val_accuracy": 0.7941176470588235,
+    "best_val_f1_macro": 0.8230904846257459
 }
